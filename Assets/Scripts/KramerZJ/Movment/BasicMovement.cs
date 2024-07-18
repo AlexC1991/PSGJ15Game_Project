@@ -56,6 +56,13 @@ namespace ProjectDungeonCrawlerPJ15
             movement = transform.TransformDirection(movement) * _speed;
             
             _controller.Move((movement + _moveDirection) * Time.deltaTime);
+            
+            _isGround = Physics.CheckSphere(_groundCheck.position, _checkLength, _groundMask);
+            
+            if (Input.GetKeyUp(KeyCode.Space) && _isGround)//jump
+            {
+                _velocity.y = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
+            }
         }
 
         private void FixedUpdate()
