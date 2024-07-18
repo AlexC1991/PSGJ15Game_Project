@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8d6627da47aa44141a23d274f868bc5f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _shooting_system: {instanceID: 0}
+  - _impact_particle: {instanceID: 0}
+  - _bullet_spawn_point: {instanceID: 0}
+  - _bulletTrail: {fileID: 2460775336949675099, guid: 31e963e47e1a6d84da06132b1ef15696, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
