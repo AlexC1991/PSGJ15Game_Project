@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,25 +17,47 @@ namespace ProjectDungeonCrawlerPJ15
         [SerializeField] private Transform _groundCheck;
         [SerializeField] private LayerMask _groundMask;
         private bool _isGround;
+         private float _mouseXposition;
+         private float _mouseYposition;
+         private float _mouseSensitivityX;
+         private float _mouseSensitivityY;
+        [SerializeField] private float downValue;
+        [SerializeField] private float upValue;
+        [SerializeField] private Camera _playerCamera;
+         private float _moveHorizontal;
+         private float _moveVertical;
+        private Vector3 _moveDirection;
+
         public bool isGrounded { get => _isGround; }
         // Update is called once per frame
+
+        private void Start()
+        {
+            _mouseSensitivityY = 0.7f;
+            _mouseSensitivityX = 1;
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+
         void Update()
         {
-            _isGround = Physics.CheckSphere(_groundCheck.position, _checkLength, _groundMask);
+            _mouseXposition += Input.GetAxis("Mouse X") * _mouseSensitivityX;
+            _mouseYposition -= Input.GetAxis("Mouse Y") * _mouseSensitivityY;
+            _mouseYposition = Mathf.Clamp(_mouseYposition, downValue, upValue);
 
-            float x = Input.GetAxis("Horizontal");
-            float z = Input.GetAxis("Vertical");
+            transform.rotation = Quaternion.Euler(_mouseYposition, _mouseXposition, 0f);
+            _playerCamera.transform.rotation = Quaternion.Euler(_mouseYposition, _mouseXposition, 0f);
+            
+            _moveHorizontal = Input.GetAxis("Horizontal");
+            _moveVertical = Input.GetAxis("Vertical");
 
-            Vector3 move = transform.right * x + transform.forward * z;
-
-            _controller.Move(move * _speed * Time.deltaTime);//basic movement
-
-            if (Input.GetButtonDown("Jump") && _isGround)//jump
-            {
-                _velocity.y = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
-            }
-
+            Vector3 movement = new Vector3(_moveHorizontal, 0f, _moveVertical);
+            movement = transform.TransformDirection(movement) * _speed;
+            
+            _controller.Move((movement + _moveDirection) * Time.deltaTime);
         }
+
         private void FixedUpdate()
         {
 

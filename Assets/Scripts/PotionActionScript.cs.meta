@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f1150e5bb0d1ac8488adac9e601a4745
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - bouncyPotion: {fileID: 5892153337449141956, guid: 45a5e4e9904615d44b1f3e48235ccf6a,
+      type: 3}
+  - slipPotion: {instanceID: 0}
+  - stickyPotion: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
