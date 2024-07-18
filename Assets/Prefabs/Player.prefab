@@ -105,7 +105,7 @@ MonoBehaviour:
   _groundCheck: {fileID: 7698949489680487419}
   _groundMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
 --- !u!143 &8171635909860772864
 CharacterController:
   m_ObjectHideFlags: 0
