@@ -57,9 +57,7 @@ public class PlayerMovementD : MonoBehaviour
         else
             rb.drag = 0;
 
-        //handle falling
-        if (!grounded)
-            rb.AddForce(transform.up * .25f* -jumpForce, ForceMode.Acceleration);
+        
     }
 
     private void FixedUpdate()
@@ -95,6 +93,10 @@ public class PlayerMovementD : MonoBehaviour
         // in air
         else if(!grounded)
             rb.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
+
+        //handle falling
+        if (!grounded)
+            rb.AddForce(transform.up * .25f * -jumpForce, ForceMode.Acceleration);
     }
 
     private void SpeedControl()
