@@ -11,20 +11,22 @@ namespace ProjectDungeonCrawlerPJ15
     {
         
         [Header("Movement")]
-        [SerializeField] private Rigidbody _rb;
         [SerializeField, Range(0, 50f)] private float _speed = 7f;
-        [SerializeField, Range(0, 50f)] private float _walkSpeed = 7f;
-        [SerializeField, Range(0, 50f)] private float _sprintSpeed = 10f;
         [SerializeField, Range(-20f, 0)] private float _gravity = -9.8f;
         [SerializeField, Range(0.4f, 1f)] private float _checkLength = 0.1f;
         [SerializeField, Range(0, 20f)] private float _jumpForce = 12f;
-        [SerializeField, Range(0, 1f)] private float airMultiplier = 0.4f;
-        [SerializeField, Range(0, 10f)] private float _groundDrag = 3;
+        [SerializeField, Range(0, 1f)] private float _jumpTime = 0.3f;
+        [SerializeField, Range(0f, 1f)] private float _jumpCooldown = 0.3f;
+        [SerializeField, Range(0f, 10f)] private float _jumpHeight = 4f;
+        [SerializeField, Range(0, 1f)] private float _airControl = 0.4f;
+        [SerializeField, Range(0, 10f)] private float _groundDrag = 3f;
+        [SerializeField, Range(0f, 5f)] private float _airDrag = 0.5f;
         [SerializeField, Range(0f,20f)] private float _horsePower = 10f;
-        [Header("Crouching")]
-        [SerializeField, Range(0f, 7f)] private float _crouchSpeed = 3.5f;
-        [SerializeField, Range(0f, 0.7f)] private float _crouchYScale = 0.5f;
-        private float _startYScale;
+
+  
+        private float fallingTime = 0f;
+        private Vector3 _velocity;
+
         [Header("Ground Check")]
         [SerializeField] private Transform _groundCheck;
         [SerializeField] private LayerMask _groundMask;
@@ -42,9 +44,9 @@ namespace ProjectDungeonCrawlerPJ15
         [SerializeField] private float downValue;
         [SerializeField] private float upValue;
         [SerializeField] private Camera _playerCamera;
+        [SerializeField] private Transform _cameraFollow;
 
         [Header("Input")]
-        private Transform _orientation;
         private float _moveHorizontal;
         private float _moveVertical;
         private Vector3 _moveDirection;
@@ -59,19 +61,17 @@ namespace ProjectDungeonCrawlerPJ15
         public bool isGrounded { get => _isGround; }
         public enum MovementState
         {
-            walking,
-            springting,
-            crouching,
-            air
+            onGround,
+            OnWall,
         }
         public MovementState state;
+        
+        [SerializeField]private bool _readyToJump = true;
 
         // Update is called once per frame
 
         private void Start()
         {
-            _rb = GetComponentInParent<Rigidbody>();
-            _rb.freezeRotation = true;
 
             _mouseSensitivityY = 0.7f;
             _mouseSensitivityX = 1;
@@ -79,9 +79,6 @@ namespace ProjectDungeonCrawlerPJ15
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
-            _orientation = _playerCamera.transform;
-
-            _startYScale = transform.localScale.y;
         }
 
         void Update()
@@ -90,12 +87,8 @@ namespace ProjectDungeonCrawlerPJ15
             
             MyInput();
             SpeedControl();
-            StateHandler();
-            // handle drag
-            if (_isGround)
-                _rb.drag = _groundDrag;
-            else
-                _rb.drag = _groundDrag/2;
+
+            //TODO: handle drag somewhere 
         }
 
         private void MyInput()
@@ -104,28 +97,32 @@ namespace ProjectDungeonCrawlerPJ15
             _moveHorizontal = Input.GetAxis("Horizontal");
             _moveVertical = Input.GetAxis("Vertical");
             // when to jump
-            if (Input.GetKeyUp(jumpKey)  && _isGround)
+            if (Input.GetKey(jumpKey)  && _isGround&& _readyToJump)
             {
-                Jump();
-            }
-            //start crouch
-            if (Input.GetKeyDown(crouchKey))
-            {
-                transform.localScale = new Vector3(transform.localScale.x, _crouchYScale, transform.localScale.z);
-                _rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
-            }
-            //stop crouch
-            if (Input.GetKeyUp(crouchKey))
-            {
-                transform.localScale = new Vector3(transform.localScale.x, _startYScale, transform.localScale.z);
+                _readyToJump = false;
+                StartCoroutine(Jump());
+                Invoke(nameof(ResetJump), _jumpCooldown);
             }
         }
-        private void Jump()
-        {
-            // reset y velocity
-            _rb.velocity = new Vector3(_rb.velocity.x, 0f, _rb.velocity.z);
 
-            _rb.AddForce(transform.up * _jumpForce, ForceMode.Impulse);
+        private void ResetJump()
+        {
+            _readyToJump = true;
+        }
+
+
+        private IEnumerator Jump()
+        {
+            float timer = 0;
+            float jumpFactor = _jumpTime / 30;
+            while (timer< _jumpTime && jumpFactor< _jumpTime)
+            {
+                transform.position = transform.position + Vector3.up * _jumpForce* -Mathf.Log(jumpFactor/ _jumpTime,30);//gravity is a negative number
+                timer += Time.fixedDeltaTime;
+                jumpFactor+= Time.fixedDeltaTime;
+                yield return new WaitForEndOfFrame();
+            }
+            
         }
         private void HandleCamera()
         {
@@ -133,7 +130,8 @@ namespace ProjectDungeonCrawlerPJ15
             _mouseYposition -= Input.GetAxis("Mouse Y") * _mouseSensitivityY;
             _mouseYposition = Mathf.Clamp(_mouseYposition, downValue, upValue);
 
-            transform.rotation = Quaternion.Euler(_mouseYposition, _mouseXposition, 0f);
+            transform.rotation = Quaternion.Euler(0f, _mouseXposition, 0f);
+            _cameraFollow.rotation = Quaternion.Euler(_mouseYposition, _mouseXposition, 0f);
             _playerCamera.transform.rotation = Quaternion.Euler(_mouseYposition, _mouseXposition, 0f);
         }
 
@@ -144,72 +142,50 @@ namespace ProjectDungeonCrawlerPJ15
         private void MovePlayer()
         {
             // calculate movement direction
-            _moveDirection = _orientation.forward * _moveVertical + _orientation.right * _moveHorizontal;
-
+            _moveDirection = transform.forward * _moveVertical + transform.right * _moveHorizontal;
+            
 
             if (OnSlope())
             {
-                _rb.AddForce(GetSlopeMoveDirection() * _speed * _horsePower, ForceMode.Force);
+                //_rb.AddForce(GetSlopeMoveDirection() * _speed * _horsePower, ForceMode.Force);
 
-                if (_rb.velocity.y > 0) _rb.AddForce(Vector3.down * 8f * _horsePower, ForceMode.Force);
+                //if (_rb.velocity.y > 0) _rb.AddForce(Vector3.down * 8f * _horsePower, ForceMode.Force);
+                transform.position = transform.position + GetSlopeMoveDirection() *_speed * Time.fixedDeltaTime;
             }
 
             // on ground
             if (_isGround)
-                _rb.AddForce(_moveDirection.normalized * _speed * _horsePower, ForceMode.Force);
-
+            //_rb.AddForce(_moveDirection.normalized * _speed * _horsePower, ForceMode.Force);
+            {
+                transform.position = transform.position + _moveDirection * _speed * Time.fixedDeltaTime;
+                fallingTime = 0;
+            }
             // in air
             else if (!_isGround)
-                _rb.AddForce(_moveDirection.normalized * _speed * 10f * airMultiplier, ForceMode.Force);
+            {
+                transform.position = transform.position + _moveDirection * _speed * _airControl * Time.fixedDeltaTime;
+                //handle falling
+                fallingTime += Time.fixedDeltaTime;
+                if (fallingTime>0)
+                {
+                    transform.position = transform.position + Vector3.up * _gravity * Mathf.Log10(fallingTime+1);//gravity is a negative number
+                }
+            }
+            
 
-            //handle falling
-            if (!_isGround)
-                _rb.AddForce(transform.up * .25f * -_jumpForce, ForceMode.Acceleration);
 
-            _rb.useGravity = !OnSlope();
+            //TODO: disable gravity on slope if needs
         }
         private void SpeedControl()
         {
             // limiting speed on slope
             if (OnSlope())
             {
-                if (_rb.velocity.magnitude > _speed) _rb.velocity = _rb.velocity.normalized * _speed;
+                //TODO: Handle speed in transform
             }
             else// limiting speed on gournd or air
             {
-                Vector3 flatVel = new Vector3(_rb.velocity.x, 0f, _rb.velocity.z);
-
-                // limit velocity if needed
-                if (flatVel.magnitude > _speed)
-                {
-                    Vector3 limitedVel = flatVel.normalized * _speed;
-                    _rb.velocity = new Vector3(limitedVel.x, _rb.velocity.y, limitedVel.z);
-                }
-            }
-
-            
-        }
-        private void StateHandler()
-        {
-            if (Input.GetKey(crouchKey))
-            {
-                state = MovementState.crouching;
-                _speed = _crouchSpeed;
-                return;
-            }
-
-            if (_isGround&&Input.GetKey(sprintKey))
-            {
-                state = MovementState.springting;
-                _speed = _sprintSpeed;
-            }else if (!Input.GetKey(sprintKey))
-            {
-                state = MovementState.walking;
-                _speed = _walkSpeed;
-            }
-            else
-            {
-                state = MovementState.air;
+                //TODO: Handle speed in transform
             }
         }
         private bool OnSlope()

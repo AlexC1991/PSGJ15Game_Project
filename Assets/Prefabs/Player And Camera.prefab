@@ -109,7 +109,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 119
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -216,7 +216,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7643772053085299468}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: GroundCheck
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -542,8 +542,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9138036132891868455}
-  - component: {fileID: 2536193697488417075}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Main Character
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -566,33 +565,6 @@ Transform:
   - {fileID: 1214226618511099072}
   m_Father: {fileID: 4405583130281853737}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &2536193697488417075
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8141340927580903281}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!1 &8862522793017918319
 GameObject:
   m_ObjectHideFlags: 0
@@ -650,6 +622,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 9138036132891868455}
     m_Modifications:
+    - target: {fileID: 857366284233246991, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 1515148523109949532, guid: a7998f88c769b4c46a7aa420660ec428,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -700,10 +677,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 2.052
       objectReference: {fileID: 0}
+    - target: {fileID: 1791910014483314508, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 2722792190427122668, guid: a7998f88c769b4c46a7aa420660ec428,
         type: 3}
       propertyPath: m_Name
       value: RogueHooded
+      objectReference: {fileID: 0}
+    - target: {fileID: 2722792190427122668, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2748390970942534130, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3351414514790535510, guid: a7998f88c769b4c46a7aa420660ec428,
         type: 3}
@@ -755,6 +747,51 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3766833714298182766, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5246822761118253004, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5578291971077618673, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6045219023852247414, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7352477518068299659, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7550957471416691732, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7703919492174321678, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7735098546511526023, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8085726785607855696, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 8674690901702888236, guid: a7998f88c769b4c46a7aa420660ec428,
         type: 3}
       propertyPath: m_Enabled
@@ -769,6 +806,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_ApplyRootMotion
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8748238017797837697, guid: a7998f88c769b4c46a7aa420660ec428,
+        type: 3}
+      propertyPath: m_Layer
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -811,18 +853,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4babb660f95b8ed43bd47f2f5703b48c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rb: {fileID: 0}
-  _speed: 7
-  _walkSpeed: 7
-  _sprintSpeed: 10
-  _gravity: -4.3
+  _speed: 12
+  _gravity: -2.5
   _checkLength: 0.4
-  _jumpForce: 12
-  airMultiplier: 0.4
+  _jumpForce: 1
+  _jumpTime: 0.3
+  _jumpCooldown: 0.3
+  _jumpHeight: 0.3
+  _airControl: 0.8
   _groundDrag: 3
+  _airDrag: 0.5
   _horsePower: 10
-  _crouchSpeed: 3.5
-  _crouchYScale: 0.5
   _groundCheck: {fileID: 7643772053085299468}
   _groundMask:
     serializedVersion: 2
@@ -831,10 +872,12 @@ MonoBehaviour:
   downValue: -87
   upValue: 87
   _playerCamera: {fileID: 4670647486621189995}
+  _cameraFollow: {fileID: 3124850109715396042}
   jumpKey: 32
   sprintKey: 304
   crouchKey: 306
   state: 0
+  _readyToJump: 1
 --- !u!136 &5879864739580417552
 CapsuleCollider:
   m_ObjectHideFlags: 0
