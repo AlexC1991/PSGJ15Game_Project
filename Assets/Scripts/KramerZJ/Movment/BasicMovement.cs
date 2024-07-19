@@ -29,7 +29,12 @@ namespace ProjectDungeonCrawlerPJ15
         [SerializeField] private Transform _groundCheck;
         [SerializeField] private LayerMask _groundMask;
         private bool _isGround;
-         private float _mouseXposition;
+
+        [Header("Slope Handling")]
+        [SerializeField, Range(0f, 7f)] private float maxSlopeAngle;
+        [SerializeField, Range(0f, 7f)] private RaycastHit slopeHit;
+
+        private float _mouseXposition;
          private float _mouseYposition;
          private float _mouseSensitivityX;
          private float _mouseSensitivityY;
@@ -141,6 +146,14 @@ namespace ProjectDungeonCrawlerPJ15
             // calculate movement direction
             _moveDirection = _orientation.forward * _moveVertical + _orientation.right * _moveHorizontal;
 
+
+            if (OnSlope())
+            {
+                _rb.AddForce(GetSlopeMoveDirection() * _speed * _horsePower, ForceMode.Force);
+
+                if (_rb.velocity.y > 0) _rb.AddForce(Vector3.down * 8f * _horsePower, ForceMode.Force);
+            }
+
             // on ground
             if (_isGround)
                 _rb.AddForce(_moveDirection.normalized * _speed * _horsePower, ForceMode.Force);
@@ -152,17 +165,29 @@ namespace ProjectDungeonCrawlerPJ15
             //handle falling
             if (!_isGround)
                 _rb.AddForce(transform.up * .25f * -_jumpForce, ForceMode.Acceleration);
+
+            _rb.useGravity = !OnSlope();
         }
         private void SpeedControl()
         {
-            Vector3 flatVel = new Vector3(_rb.velocity.x, 0f, _rb.velocity.z);
-
-            // limit velocity if needed
-            if (flatVel.magnitude > _speed)
+            // limiting speed on slope
+            if (OnSlope())
             {
-                Vector3 limitedVel = flatVel.normalized * _speed;
-                _rb.velocity = new Vector3(limitedVel.x, _rb.velocity.y, limitedVel.z);
+                if (_rb.velocity.magnitude > _speed) _rb.velocity = _rb.velocity.normalized * _speed;
             }
+            else// limiting speed on gournd or air
+            {
+                Vector3 flatVel = new Vector3(_rb.velocity.x, 0f, _rb.velocity.z);
+
+                // limit velocity if needed
+                if (flatVel.magnitude > _speed)
+                {
+                    Vector3 limitedVel = flatVel.normalized * _speed;
+                    _rb.velocity = new Vector3(limitedVel.x, _rb.velocity.y, limitedVel.z);
+                }
+            }
+
+            
         }
         private void StateHandler()
         {
@@ -186,6 +211,19 @@ namespace ProjectDungeonCrawlerPJ15
             {
                 state = MovementState.air;
             }
+        }
+        private bool OnSlope()
+        {
+            if (Physics.Raycast(_groundCheck.position, Vector3.down, out slopeHit, 0.3f, _groundMask))
+            {
+                float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+                return angle < maxSlopeAngle && angle != 0;
+            }
+            return false;
+        }
+        private Vector3 GetSlopeMoveDirection()
+        {
+            return Vector3.ProjectOnPlane(_moveDirection, slopeHit.normal).normalized;
         }
         private void OnDrawGizmos()
         {
