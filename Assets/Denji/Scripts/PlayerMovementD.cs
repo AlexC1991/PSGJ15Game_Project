@@ -1,15 +1,11 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 
 public class PlayerMovementD : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed;
-
     public float groundDrag;
-
     public float jumpForce;
     public float jumpCooldown;
     public float airMultiplier;
@@ -25,6 +21,7 @@ public class PlayerMovementD : MonoBehaviour
     public float playerHeight;
     public LayerMask whatIsGround;
     bool grounded;
+    bool wasGrounded;
 
     public Transform orientation;
 
@@ -41,23 +38,24 @@ public class PlayerMovementD : MonoBehaviour
         rb.freezeRotation = true;
 
         readyToJump = true;
+        wasGrounded = false;
     }
 
     private void Update()
     {
         // ground check
-        grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
+        grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.1f, whatIsGround);
 
         MyInput();
         SpeedControl();
 
-        // handle drag
-        if (grounded)
-            rb.drag = groundDrag;
-        else
-            rb.drag = 0;
-
-        
+        // start smooth drag transition if grounded state changes
+        if (grounded != wasGrounded)
+        {
+            StopAllCoroutines();
+            StartCoroutine(SmoothTransitionDrag(grounded ? groundDrag : 0));
+        }
+        wasGrounded = grounded;
     }
 
     private void FixedUpdate()
@@ -71,12 +69,10 @@ public class PlayerMovementD : MonoBehaviour
         verticalInput = Input.GetAxisRaw("Vertical");
 
         // when to jump
-        if(Input.GetKey(jumpKey) && readyToJump && grounded)
+        if (Input.GetKey(jumpKey) && readyToJump && grounded)
         {
             readyToJump = false;
-
             Jump();
-
             Invoke(nameof(ResetJump), jumpCooldown);
         }
     }
@@ -87,16 +83,16 @@ public class PlayerMovementD : MonoBehaviour
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
 
         // on ground
-        if(grounded)
+        if (grounded)
             rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
 
         // in air
-        else if(!grounded)
+        else if (!grounded)
             rb.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
 
         //handle falling
-        if (!grounded)
-            rb.AddForce(transform.up * .25f * -jumpForce, ForceMode.Acceleration);
+        //if (!grounded)
+        //    rb.AddForce(transform.up * 1.25f * -jumpForce, ForceMode.Acceleration);
     }
 
     private void SpeedControl()
@@ -104,7 +100,7 @@ public class PlayerMovementD : MonoBehaviour
         Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
         // limit velocity if needed
-        if(flatVel.magnitude > moveSpeed)
+        if (flatVel.magnitude > moveSpeed)
         {
             Vector3 limitedVel = flatVel.normalized * moveSpeed;
             rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
@@ -115,11 +111,27 @@ public class PlayerMovementD : MonoBehaviour
     {
         // reset y velocity
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-
         rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
     }
+
     private void ResetJump()
     {
         readyToJump = true;
+    }
+
+    private IEnumerator SmoothTransitionDrag(float targetDrag)
+    {
+        float initialDrag = rb.drag;
+        float elapsedTime = 0f;
+        float duration = 1f; // Duration of the transition in seconds
+
+        while (elapsedTime < duration)
+        {
+            rb.drag = Mathf.Lerp(initialDrag, targetDrag, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        rb.drag = targetDrag;
     }
 }
