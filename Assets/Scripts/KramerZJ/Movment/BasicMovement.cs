@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 namespace ProjectDungeonCrawlerPJ15
 {
@@ -14,7 +15,7 @@ namespace ProjectDungeonCrawlerPJ15
         [Header("Movement")]
         [SerializeField, Range(0, 50f)] private float _speed = 7f;
         [SerializeField, Range(-20f, 0)] private float _gravity = -9.8f;
-        [SerializeField, Range(0.1f, 1f)] private float _checkLength = 0.1f;
+        [SerializeField, Range(0.1f, 1f)] private float _checkLength = 0.2f;
         private Vector3 _horizontalVelocity = new Vector3(0f, 0f, 0f);
         private Vector3 _verticalVelocity = new Vector3(0f, 0f, 0f);
 
@@ -31,8 +32,10 @@ namespace ProjectDungeonCrawlerPJ15
         [SerializeField, Range(0f, 1f)] private float _hitWallDrag = 0.5f;
 
         [Header("Collition Detect")]
+        [SerializeField] private float playerHeight = 2f;
         [SerializeField, Range(0f, 5f)] private float _collitionDistance = 1.5f;
         [SerializeField, Range(0f, 2f)] private float _moveUpStep = 0.25f;
+        [SerializeField] bool canMove = true;
 
   
         [Header("Ground Check")]
@@ -59,8 +62,9 @@ namespace ProjectDungeonCrawlerPJ15
         [ReadOnly][SerializeField] private float _moveVertical;
         [ReadOnly][SerializeField] private Vector3 _moveDirection;
 
-        
+
         [Header("Keybinds")]
+        private PlayerControls playerActions;
         public KeyCode jumpKey = KeyCode.Space;
         public KeyCode sprintKey = KeyCode.LeftShift;
         public KeyCode crouchKey = KeyCode.LeftControl;
@@ -76,7 +80,11 @@ namespace ProjectDungeonCrawlerPJ15
         
         [SerializeField]private bool _readyToJump = true;
 
-        // Update is called once per frame
+        private void Awake()
+        {
+            playerActions= new PlayerControls();
+            playerActions.Playernormal.Enable();
+        }
 
         private void Start()
         {
@@ -143,19 +151,14 @@ namespace ProjectDungeonCrawlerPJ15
             transform.position += _horizontalVelocity * Time.fixedDeltaTime + _verticalVelocity * Time.fixedDeltaTime;
 
             // calculate movement direction
-            _moveDirection = transform.forward * _moveVertical + transform.right * _moveHorizontal;
-
+            _moveDirection= transform.right * playerActions.Playernormal.Movement.ReadValue<Vector2>().normalized.x+ transform.forward * playerActions.Playernormal.Movement.ReadValue<Vector2>().normalized.y;//new input system
             if (OnSlope())
             {
-                //_rb.AddForce(GetSlopeMoveDirection() * _speed * _horsePower, ForceMode.Force);
-
-                //if (_rb.velocity.y > 0) _rb.AddForce(Vector3.down * 8f * _horsePower, ForceMode.Force);
                 _horizontalVelocity += GetSlopeMoveDirection() * _speed;
             }
 
             // on ground
             if (_isGround)
-            //_rb.AddForce(_moveDirection.normalized * _speed * _horsePower, ForceMode.Force);
             {
                 _horizontalVelocity += _moveDirection * _speed;
 
@@ -197,8 +200,36 @@ namespace ProjectDungeonCrawlerPJ15
 
         private void CollideDetect()
         {
+            canMove = !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, _collitionDistance, _moveDirection, _horizontalVelocity.magnitude * Time.deltaTime);
+            if (!canMove)
+            {
+                Vector3 _moveDirX = new Vector3(_moveDirection.x, 0f, 0f);
+                canMove = !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, _collitionDistance, _moveDirX, _horizontalVelocity.magnitude * Time.deltaTime);
+                if(canMove)
+                {//can move only on the X
+                    _moveDirection = _moveDirX;
+                }
+                else
+                {//cannot move only on the X
+                    Vector3 _moveDirZ = new Vector3(0, 0, _moveDirection.z);
+                    canMove = !!Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, _collitionDistance, _moveDirZ, _horizontalVelocity.magnitude * Time.deltaTime);
+
+                    if (canMove)
+                    {
+                        //move only to on Z
+                        _moveDirection = _moveDirZ;
+                    }
+                    else
+                    {
+                        //cannot move in any direction
+                    }
+                }
+            }
+                
+                
+                
+                //slope handling and collision detect
             RaycastHit collisionHit;
-            
             for (int i=0;i<4;i++)
             {
                 if (Physics.Raycast(transform.position + new Vector3(0f, _moveUpStep * 2, 0f), _horizontalVelocity.normalized, out collisionHit, _collitionDistance, _groundMask))
@@ -215,6 +246,7 @@ namespace ProjectDungeonCrawlerPJ15
                 _horizontalVelocity = Vector3.ProjectOnPlane(_horizontalVelocity, collisionHit.normal) * _hitWallDrag;
                 return;
             }
+            //handling step up for slope or stair
             if (Physics.Raycast(transform.position, _horizontalVelocity.normalized, _collitionDistance, _groundMask))
             {
                 if (_horizontalVelocity.sqrMagnitude>0f)
@@ -238,7 +270,7 @@ namespace ProjectDungeonCrawlerPJ15
         }
         private bool OnSlope()
         {
-            if (Physics.Raycast(_groundCheck.position, Vector3.down, out slopeHit, 0.3f, _groundMask))
+            if (Physics.Raycast(_groundCheck.position, Vector3.down, out slopeHit, _checkLength+0.1f, _groundMask))
             {
                 float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
                 return angle < maxSlopeAngle && angle != 0;
